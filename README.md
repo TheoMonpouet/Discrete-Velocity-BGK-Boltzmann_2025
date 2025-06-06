@@ -1,1 +1,1 @@
-# Discrete-Velocity-BGK-Boltzmann_2025
+# Discrete-Velocity BGK Boltzmann 2025
