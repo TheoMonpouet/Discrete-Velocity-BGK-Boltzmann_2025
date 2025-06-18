@@ -1,4 +1,4 @@
-"""
+/*
     temp_variables.cpp: struct with static members to store all the temporary variables used in this program.
     This allows reusabilty instead of allocating new memory at each iterations
    
@@ -6,7 +6,7 @@
     As part of a master thesis in Computational Mathematics, KTH Royal Institute of Technology
     Thesis name: 'Parallel implementation and analysis of the discrete-velocity BGK Boltzmann method'
     Date: 2025/06/01
-"""
+*/
 
 
 

@@ -1,4 +1,4 @@
-"""
+/*
     init_variables.cpp: struct with static members to compute and store all constant variables used in the program.
     Change physical and numerical parameters here.
    
@@ -6,7 +6,7 @@
     As part of a master thesis in Computational Mathematics, KTH Royal Institute of Technology
     Thesis name: 'Parallel implementation and analysis of the discrete-velocity BGK Boltzmann method'
     Date: 2025/06/01
-"""
+*/
 
 
 

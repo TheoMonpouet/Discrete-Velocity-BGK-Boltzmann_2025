@@ -1,11 +1,11 @@
-"""
+/*
     functions.cpp: the functions used in the program for the timestepping and saving of solutions.
    
     Author: Théo Monpouet Ekeram
     As part of a master thesis in Computational Mathematics, KTH Royal Institute of Technology
     Thesis name: 'Parallel implementation and analysis of the discrete-velocity BGK Boltzmann method'
     Date: 2025/06/01
-"""
+*/
 
 
 

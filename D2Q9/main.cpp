@@ -7,10 +7,10 @@
 #include <mpi.h>
 #include <fftw3-mpi.h>
 
-// #include "init_variables.cpp"
-// #include "FFTHandler.cpp"
+#include "init_variables.cpp"
+#include "FFTHandler.cpp"
 #include "temp_variables.cpp"
-// #include "functions.cpp"
+#include "functions.cpp"
 
 
 
