@@ -171,7 +171,6 @@ void RK4stepping(valarray<complex<double>>& ghat) {
 }
 
 
-
 // set_initial_ghat_from_closed_form(): Function to set the initial condition of ghat from the vorticity inital condition defined in "init_variables.cpp"
 // Inputs:
 //      - valarray<complex<double>>& ghat: Particle velocity probability distribution, to be overwritten with the initial condition of ghat
@@ -194,7 +193,6 @@ void set_initial_ghat_from_closed_form(valarray<complex<double>>& ghat) {
 }
 
 
-
 // set_initial_ghat_from_file(): Function to set the initial condition of ghat from the vorticity inital condition defined in file
 // Inputs:
 //      - valarray<complex<double>>& ghat: Particle velocity probability distribution, to be overwritten with the initial condition of ghat
@@ -208,7 +206,7 @@ void set_initial_ghat_from_file(valarray<complex<double>>& ghat) {
 
     // Reading whole file
     for (size_t i = 0; i < Constants::N*Constants::N; ++i) {
-        if (!(infile >> full_data[i])) {
+        if (!(infile >> w0_global[i])) {
             std::cerr << "Error reading value at index " << i << "\n";
         }
     }
@@ -216,7 +214,7 @@ void set_initial_ghat_from_file(valarray<complex<double>>& ghat) {
     // Splitting file so that every processor only takes one part
     for (int i = 0; i < Constants::local_N_ps; i++) {
         for (int j = 0; j < Constants::N; j++) {
-            w0_local[i * 2*(Constants::N/2+1) + j] = full_data[((i + Constants::local_start_ps) * Constants::N) + j];
+            w0_local[i * 2*(Constants::N/2+1) + j] = w0_global[((i + Constants::local_start_ps) * Constants::N) + j];
         }
     }
 
@@ -243,20 +241,18 @@ void set_initial_ghat_from_file(valarray<complex<double>>& ghat) {
 
 
 
-
-void save_array_to_file(valarray<double>& w, int ti) {
-
+// save_vort_to_file(): Function to save the vorticity field to file
+// Inputs:
+//      - valarray<double>& w: vorticity field array
+//      - int ti: current time index
+void save_vort_to_file(valarray<double>& w, int ti) {
+    // Filepath of result
     ostringstream oss;
-    oss << "/cfs/klemming/projects/supr/latticeboltzmann_2025/2d_final_runs/turbulent/eps0_3/vort_output_d2q9_e" << Constants::epsilon << "ti" << ti << ".txt";
+    oss << Constants::result_file_path << Constants::init_condition << "_N" << Constants::N << "_dt" << Constants::dt << "_T" << Constants::T1 << "_nu" << Constants::nu << "_Nsave" << Constants::Nsave << "_ti" << ti << ".txt";
+    ofstream outFile(oss.str());
 
-    std::ofstream outFile(oss.str(), std::ios::app);
-
-    outFile << std::fixed << std::setprecision(15);
-
-    // if (Temp::first_save) {
-    //     outFile << Constants::N << endl;
-    //     Temp::first_save = false;
-    // }
+    // Write file with full precision
+    outFile << std::fixed << std::setprecision(16);
 
     for (const auto& val : w) {
         outFile << val << " ";
@@ -267,11 +263,19 @@ void save_array_to_file(valarray<double>& w, int ti) {
     outFile.close();
 }
 
-void print_norm_of_diff(valarray<double>& w, double t) {
+
+// save_err_to_file(): Function to save the relative error field to file
+// Inputs:
+//      - valarray<double>& w: vorticity field array
+//      - double t: current time
+//      - int ti: current time index
+void save_err_to_file(valarray<double>& w, double t, int ti) {
+    if (Constants::init_condition == "ptg") return;
+
     valarray<double> ref_w(Constants::N*Constants::N);
     valarray<double> w_diff(Constants::N*Constants::N);
 
-
+    // Computing reference solution and difference to simulation approximation
     for (int i = 0; i < Constants::N; i++) {
         for (int j = 0; j < Constants::N; j++) {
             int index = i * 2*(Constants::N/2+1) + j;
@@ -282,41 +286,50 @@ void print_norm_of_diff(valarray<double>& w, double t) {
 
             ref_w[index_filtered] = 10 * sin(2*M_PI*2*x) * sin(2*M_PI*2*y) * exp(-4*M_PI*M_PI * (4+4) * Constants::c_s * Constants::c_s * Constants::nu * t);
             w_diff[index_filtered] = abs(w[index_filtered] - ref_w[index_filtered]);
-
-            // cout << w[index_filtered] << endl;
         }
     }
 
+    // Computing relative error
     valarray<double> prod_diff = abs(w-ref_w)*abs(w-ref_w);
     valarray<double> ref_diff  = ref_w*ref_w;
 
     double E_diff = sqrt(prod_diff.sum() * Constants::dx * Constants::dy);
     double E_ref  = sqrt(ref_diff.sum()  * Constants::dx * Constants::dy);
 
-    cout << "T: " << t << endl;
-    cout << "epsilon: " << Constants::epsilon << endl;
-    cout << "dt: " << Constants::dt << endl;
-    cout << "E_diff: " << E_diff << endl;
-    cout << "E_ref:  " << E_ref << endl;
-    cout << "Relative: " << E_diff/E_ref << endl;
+    // Writing error to file
+    string file_name = Constants::result_file_path + "/error.txt";
+    ofstream out_error(file_name, std::ios::app);
 
-
+    out_error << E_diff/E_ref << "\n";
+    out_error.close();
 }
 
 
-void save_to_file_routine(valarray<complex<double>>& ghat, double t, double ti) {
+
+
+
+// save_to_file_routine(): Routine to save chosen info to file
+// Inputs:
+//      - valarray<complex<double>>& ghat: Particle velocity probability distribution
+//      - double t: current time
+//      - int ti: current time index
+void save_to_file_routine(valarray<complex<double>>& ghat, double t, int ti) {
+    // Computing velocity from ghat
     rhou1u2(ghat);
 
     valarray<double> w_local(2 * Constants::local_alloc_ps);
     valarray<double> w_local_filtered(Constants::local_N_ps * Constants::N);
-    
-    valarray<complex<double>> temph(Constants::local_alloc_fs);
 
+    // Transforming from velocity to vorticity
+    valarray<complex<double>> w_local_hat(Constants::local_alloc_fs);
     for (int i = 0; i < Constants::local_alloc_fs; i++) {
-        temph[i] = Constants::Kx[i] * Temp::u2h[i] - Constants::Ky[i] * Temp::u1h[i];
+        w_local_hat[i] = Constants::Kx[i] * Temp::u2h[i] - Constants::Ky[i] * Temp::u1h[i];
     }
-    FFTHandler::execute_bkwd(temph, w_local);
 
+    // Transforming to physical space
+    FFTHandler::execute_bkwd(w_local_hat, w_local);
+
+    // Filter extra components
     for (int i = 0; i < Constants::local_N_ps; i++) {
         for (int j = 0; j < Constants::N; j++) {
             int index = i * 2*(Constants::N/2+1) + j;
@@ -325,14 +338,20 @@ void save_to_file_routine(valarray<complex<double>>& ghat, double t, double ti) 
         }
     }
 
-
+    // Gather all the local vorticity batches to rank 0
     valarray<double> w_global(Constants::N * Constants::N);
     MPI_Gather(&w_local_filtered[0], Constants::local_N_ps * Constants::N, MPI_DOUBLE, &w_global[0], Constants::local_N_ps * Constants::N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    
-    if(Constants::rank==0) {
-        save_array_to_file(w_global, ti);
-        // print_norm_of_diff(w_global, t);
-    }
 
+    // Saving vorticity and/or error depending on user choice in "init_variable.cpp"
+    if(Constants::rank == 0) {
+        if (Constants::saving_sol = "we") {
+            save_vort_to_file(w_global ti);
+            save_err_to_file(w_global, t, ti);
+        } else if (Constants::saving_sol = "w") {
+            save_vort_to_file(w_global, ti);
+        } else if (Constants::saving_sol = "e") {
+            save_err_to_file(w_global, t, ti);
+        }
+    }
 }

@@ -49,7 +49,7 @@ struct Constants {
     // Saving solution
     static const string result_file_path;
     static const string saving_sol;
-    static const int Nsave = 1000;
+    static const int Nsave;
 
     // Fixed parameters
     static const int N_half;
@@ -260,8 +260,8 @@ const string Constants::init_file_path = "/"; // File path (folder) of where to 
 
 
 // Saving solution
-const string Constants::result_file_path = "/"; // File path (folder) of where to save solution
-const string Constants::saving_sol = "we"; // "w": Save vorticity, "e": save error, "we": save both
+const string Constants::result_file_path = "/"; // File path (folder) of where to save solution (end with "/")
+const string Constants::saving_sol = "we"; // "w": Save vorticity, "e": save error, "we": save both (only applicable to IC "tg", for "ptg" only vorticity gets saved)
 const int Constants::Nsave = 1000; // Number of steps saved
 
 
