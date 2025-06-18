@@ -345,12 +345,12 @@ void save_to_file_routine(valarray<complex<double>>& ghat, double t, int ti) {
 
     // Saving vorticity and/or error depending on user choice in "init_variable.cpp"
     if(Constants::rank == 0) {
-        if (Constants::saving_sol = "we") {
+        if (Constants::saving_sol == "we") {
             save_vort_to_file(w_global ti);
             save_err_to_file(w_global, t, ti);
-        } else if (Constants::saving_sol = "w") {
+        } else if (Constants::saving_sol == "w") {
             save_vort_to_file(w_global, ti);
-        } else if (Constants::saving_sol = "e") {
+        } else if (Constants::saving_sol == "e") {
             save_err_to_file(w_global, t, ti);
         }
     }
