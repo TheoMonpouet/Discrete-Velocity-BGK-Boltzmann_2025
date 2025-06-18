@@ -15,6 +15,7 @@
 #include <complex>
 #include <valarray>
 #include <algorithm>
+#include <string>
 
 #include <mpi.h>
 #include <fftw3-mpi.h>
@@ -41,12 +42,23 @@ struct Constants {
     static const int N;
     static const double dt;
 
+    // Initial conditions
+    static const string init_condition;
+    static const string init_file_path;
+
+    // Saving solution
+    static const string result_file_path;
+    static const string saving_sol;
+    static const int Nsave = 1000;
+
     // Fixed parameters
     static const int N_half;
     static const double c_s;
     static const double dx;
     static const double dy;
     static const int Nd;
+    static const int TSCREEN;
+
 
     // MPI constants
     static ptrdiff_t local_alloc_ps;
@@ -114,18 +126,19 @@ struct Constants {
         fftw_plan forward_plan_init = fftw_mpi_plan_dft_r2c_2d(N, N, &w_0copy[0], reinterpret_cast<fftw_complex*>(&w_0hat[0]), MPI_COMM_WORLD, FFTW_MEASURE | FFTW_MPI_TRANSPOSED_OUT);
         fftw_plan inverse_plan_init = fftw_mpi_plan_dft_c2r_2d(N, N, reinterpret_cast<fftw_complex*>(&w_0hat[0]), &inverse_output[0], MPI_COMM_WORLD, FFTW_MEASURE | FFTW_MPI_TRANSPOSED_IN);
  
-
-        // Set initial condition
+        // Set closed form initial condition
         for (int i = 0; i < local_N_ps; i++) {
             for (int j = 0; j < N; j++) {
                 double x = j * dx;
                 double y = (local_start_ps + i ) * dy;
 
-                // Taylor-Green Vortex
-                // w_0[i * 2*(N/2+1) + j] = 10 * sin(2*M_PI*2*x) * sin(2*M_PI*2*y);
-                
-                // Perturbed Taylor-Green Vortex
-                w_0[i * 2*(N/2+1) + j] = (-sin(2 * M_PI * x) * sin(2 * M_PI * y)) + exp(-(pow(x-0.5, 2)+pow(y-0.5,2)) / (0.02));
+                if (init_condition == "tg") {
+                    // Taylor-Green Vortex
+                    w_0[i * 2*(N/2+1) + j] = 10 * sin(2*M_PI*2*x) * sin(2*M_PI*2*y);
+                } else {
+                    // Perturbed Taylor-Green Vortex
+                    w_0[i * 2*(N/2+1) + j] = (-sin(2 * M_PI * x) * sin(2 * M_PI * y)) + exp(-(pow(x-0.5, 2)+pow(y-0.5,2)) / (0.02));
+                }
             }
         }
 
@@ -218,7 +231,7 @@ struct Constants {
     // initialize(): Static method to initialize sizes, initial conditions and operators
     static void initialize(int size_, int rank_) {
         set_sizes(size_, rank_);
-        set_initials();
+        if (init_condition != "fromfile") set_initials();
         set_operators();
     }
 };
@@ -237,12 +250,30 @@ const double Constants::T1 = 4;
 const int Constants::N = 2048;
 const double Constants::dt = 2.0*pow(10, -6);
 
+
+// Initial condition
+// "tg":  Taylor-Green Vortex
+// "ptg": Perturbed Taylor-Green Vortex
+// "fromfile": Read the input from file specified by variable init_filepath
+const string Constants::init_condition = "tg";
+const string Constants::init_file_path = "/"; // File path (folder) of where to read initial condition
+
+
+// Saving solution
+const string Constants::result_file_path = "/"; // File path (folder) of where to save solution
+const string Constants::saving_sol = "we"; // "w": Save vorticity, "e": save error, "we": save both
+const int Constants::Nsave = 1000; // Number of steps saved
+
+
+
 // Fixed parameters
 const int Constants::N_half = Constants::N/2 + 1;
 const double Constants::c_s = pow(1.0/3.0, 1.0/2.0);
 const double Constants::dx = Lx/N;
 const double Constants::dy = Ly/N;
 const int Constants::Nd = round(T1/dt);
+const int Constants::TSCREEN = floor(T1 / (dt * Nsave));
+
 
 // MPI constants
 ptrdiff_t Constants::local_alloc_ps;

@@ -172,10 +172,10 @@ void RK4stepping(valarray<complex<double>>& ghat) {
 
 
 
-// set_initial_ghat(): Function to set the initial condition of ghat from the vorticity inital condition
+// set_initial_ghat_from_closed_form(): Function to set the initial condition of ghat from the vorticity inital condition defined in "init_variables.cpp"
 // Inputs:
-//      - valarray<complex<double>>& ghat: Particle velocity probability distribution, to be overwritten with the initial condition
-void set_initial_ghat(valarray<complex<double>>& ghat) {
+//      - valarray<complex<double>>& ghat: Particle velocity probability distribution, to be overwritten with the initial condition of ghat
+void set_initial_ghat_from_closed_form(valarray<complex<double>>& ghat) {
     // FFT of initial vorticity
     valarray<complex<double>> w_0hat(Constants::local_alloc_fs);
     FFTHandler::execute_fwd(Constants::w_0, w_0hat);
@@ -192,6 +192,52 @@ void set_initial_ghat(valarray<complex<double>>& ghat) {
     //Compute geq (used as initial condition for Boltzmann)
     u2geq_hat(ghat);
 }
+
+
+
+// set_initial_ghat_from_file(): Function to set the initial condition of ghat from the vorticity inital condition defined in file
+// Inputs:
+//      - valarray<complex<double>>& ghat: Particle velocity probability distribution, to be overwritten with the initial condition of ghat
+void set_initial_ghat_from_file(valarray<complex<double>>& ghat) {
+    valarray<double> w0_local(2*Constants::local_alloc_ps);
+    valarray<double> w0_global(Constants::N*Constants::N);
+
+    // Opening file
+    ifstream infile(Constants::init_file_path);
+    if (!infile) std::cerr << "Failed to open file\n";
+
+    // Reading whole file
+    for (size_t i = 0; i < Constants::N*Constants::N; ++i) {
+        if (!(infile >> full_data[i])) {
+            std::cerr << "Error reading value at index " << i << "\n";
+        }
+    }
+
+    // Splitting file so that every processor only takes one part
+    for (int i = 0; i < Constants::local_N_ps; i++) {
+        for (int j = 0; j < Constants::N; j++) {
+            w0_local[i * 2*(Constants::N/2+1) + j] = full_data[((i + Constants::local_start_ps) * Constants::N) + j];
+        }
+    }
+
+    // FFT of initial vorticity
+    valarray<complex<double>> w0_local_hat(Constants::local_alloc_fs);
+    FFTHandler::execute_fwd(w0_local, w0_local_hat);
+
+
+    // Compute velocity in x and y from the vorticity
+    Temp::u1h = -(Constants::Ky / Constants::Pois_hat) * w0_local_hat;
+    Temp::u2h =  (Constants::Kx / Constants::Pois_hat) * w0_local_hat;
+
+    // Initial density 
+    valarray<double> rho(1.0 / (Constants::N * Constants::N), 2 * Constants::local_alloc_ps);
+    FFTHandler::execute_fwd(rho, Temp::rhoh);
+
+    //Compute geq (used as initial condition for Boltzmann)
+    u2geq_hat(ghat);
+}
+
+
 
 
 
