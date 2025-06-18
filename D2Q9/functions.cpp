@@ -237,10 +237,6 @@ void set_initial_ghat_from_file(valarray<complex<double>>& ghat) {
 
 
 
-
-
-
-
 // save_vort_to_file(): Function to save the vorticity field to file
 // Inputs:
 //      - valarray<double>& w: vorticity field array
@@ -248,7 +244,7 @@ void set_initial_ghat_from_file(valarray<complex<double>>& ghat) {
 void save_vort_to_file(valarray<double>& w, int ti) {
     // Filepath of result
     ostringstream oss;
-    oss << Constants::result_file_path << Constants::init_condition << "_N" << Constants::N << "_dt" << Constants::dt << "_T" << Constants::T1 << "_nu" << Constants::nu << "_Nsave" << Constants::Nsave << "_ti" << ti << ".txt";
+    oss << Constants::result_file_path << Constants::init_condition << "_eps" << Constants::epsilon << "_N" << Constants::N << "_dt" << Constants::dt << "_T" << Constants::T1 << "_nu" << Constants::nu << "_Nsave" << Constants::Nsave << "_ti" << ti << ".txt";
     ofstream outFile(oss.str());
 
     // Write file with full precision
@@ -346,7 +342,7 @@ void save_to_file_routine(valarray<complex<double>>& ghat, double t, int ti) {
     // Saving vorticity and/or error depending on user choice in "init_variable.cpp"
     if(Constants::rank == 0) {
         if (Constants::saving_sol == "we") {
-            save_vort_to_file(w_global ti);
+            save_vort_to_file(w_global, ti);
             save_err_to_file(w_global, t, ti);
         } else if (Constants::saving_sol == "w") {
             save_vort_to_file(w_global, ti);

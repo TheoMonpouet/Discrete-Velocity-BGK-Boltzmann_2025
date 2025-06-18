@@ -16,6 +16,7 @@
 
 int main(int argc, char **argv) {
 
+    // Initializing MPI and FFTW
     MPI_Init(&argc, &argv);
     fftw_mpi_init();
 
@@ -35,13 +36,25 @@ int main(int argc, char **argv) {
     }
     MPI_Barrier(MPI_COMM_WORLD);
     
-
     // Initialize FFT routines
     FFTHandler::initialize();
 
 
+    // Set initial condition
+    valarray<complex<double>> ghat(Constants::local_alloc_fs * 9);
+    if (Constants::init_condition == "fromfile") set_initial_ghat_from_file(ghat);
+    else set_initial_ghat_from_closed_form(ghat);
+
+
+    // Main time loop
+    if (rank == 0) cout << "Starting..." << endl;
+    double T = Constants::T0;
+
+    
 
 
 
     return 0;
 }
+
+//TODO change 9 to lattice number
