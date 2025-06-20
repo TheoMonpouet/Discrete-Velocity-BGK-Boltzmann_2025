@@ -59,6 +59,8 @@ struct Constants {
     static const double dx;
     static const double dy;
     static const int Nd;
+    static const int TSCREEN;
+
 
     // MPI constants
     static ptrdiff_t local_alloc_ps;
@@ -292,6 +294,8 @@ const double Constants::c_s = 1.0/2.0;
 const double Constants::dx = Lx/N;
 const double Constants::dy = Ly/N;
 const int Constants::Nd = round(T1/dt);
+const int Constants::TSCREEN = floor(T1 / (dt * Nsave));
+
 
 
 
