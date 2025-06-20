@@ -234,8 +234,9 @@ void RK4stepping(valarray<complex<double>>& ghat) {
 void save_vel_to_file(valarray<double> u1, valarray<double> u2, valarray<double> u3, int ti) {
 
     // Set file name
-    string file_name = Constants::result_file_path << "/" << Constants::init_condition << "_eps" << Constants::epsilon << "_N" << Constants::N << "_dt" << Constants::dt << "_T" << Constants::T1 << "_nu" << Constants::nu << "_Nsave" << Constants::Nsave << "_rank" << Constants::rank << "_ti" << ti << ".vtk";
-    ofstream file(file_name);
+    ostringstream oss;
+    oss << Constants::result_file_path << "/" << Constants::init_condition << "_eps" << Constants::epsilon << "_N" << Constants::N << "_dt" << Constants::dt << "_T" << Constants::T1 << "_nu" << Constants::nu << "_Nsave" << Constants::Nsave << "_rank" << Constants::rank << "_ti" << ti << ".vtk";
+    ofstream file(oss.str());
 
     // VTK format headers
     file << "# vtk DataFile Version 3.0\n";

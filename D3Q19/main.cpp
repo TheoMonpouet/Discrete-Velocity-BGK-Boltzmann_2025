@@ -59,14 +59,14 @@ int main(int argc, char **argv) {
 
 
     // Main time loop
-    for (int ti = 1; ti < Constants::Nd + 1; i++) {
+    for (int ti = 1; ti < Constants::Nd + 1; ti++) {
         RK4stepping(ghat);
 
         // To get regular updates
-        if (ti % 1000 == 0 && rank == 0) cout << T << endl;
+        if (ti % 1000 == 0 && rank == 0) cout << ti << endl;
 
         // Only runs depending on Nsave value
-        if (ti % Constants::TSCREEN == 1) save_to_file_routine(ghat, T, ti);
+        if (ti % Constants::TSCREEN == 1) save_to_file_routine(ghat, ti);
         
     }
     
