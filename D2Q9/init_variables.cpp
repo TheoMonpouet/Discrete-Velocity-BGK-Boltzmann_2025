@@ -86,7 +86,7 @@ struct Constants {
     static valarray<double> w_0;
     
     // Weights
-    static int lattice_number = 9;
+    static const int lattice_number;
     static valarray<double> weights;
 
 
