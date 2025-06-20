@@ -8,16 +8,15 @@
     Date: 2025/06/01
 */
 
+
 #include <iostream>
 #include <math.h>
 #include <complex>
 #include <valarray>
-#include <algorithm>  
+#include <algorithm>  // For std::max_element
 
 #include <mpi.h>
 #include <fftw3-mpi.h>
-
-
 
 
 
@@ -43,7 +42,6 @@ struct Constants {
     static const int N;
     static const double dt;
 
-    
     // Initial conditions
     static const string init_condition;
     static const string init_file_path;
@@ -82,7 +80,7 @@ struct Constants {
     static valarray<complex<double>> FTh;
 
 
-    // Dealias filter
+    // dealias filter
     static valarray<complex<double>> dealias;
 
 
@@ -93,11 +91,10 @@ struct Constants {
     // Weights
     static const int lattice_number;
     static valarray<double> weights;
-    static valarray<double> vx;
-    static valarray<double> vy;
 
 
 
+    
     // set_sizes(): Static method to compute and set sizes of operator arrays
     // Inputs:
     //    - int size_: How many total processes there are.
@@ -118,8 +115,6 @@ struct Constants {
         Pois_hat.resize(local_alloc_fs);
         dealias.resize(local_alloc_fs);
         FTh.resize(local_alloc_fs * lattice_number);
-        vx.resize(lattice_number);
-        vy.resize(lattice_number);
 
 
         w_0.resize(2 * local_alloc_ps);
@@ -138,12 +133,12 @@ struct Constants {
         fftw_plan inverse_plan_init = fftw_mpi_plan_dft_c2r_2d(N, N, reinterpret_cast<fftw_complex*>(&w_0hat[0]), &inverse_output[0], MPI_COMM_WORLD, FFTW_MEASURE | FFTW_MPI_TRANSPOSED_IN);
  
 
-        // Set closed form initial condition
+        // Set initial condition
         for (int i = 0; i < local_N_ps; i++) {
             for (int j = 0; j < N; j++) {
                 double x = j * dx;
                 double y = (local_start_ps + i ) * dy;
-                
+    
                 if (init_condition == "tg") {
                     // Taylor-Green Vortex
                     w_0[i * 2*(N/2+1) + j] = 10 * sin(2*M_PI*2*x) * sin(2*M_PI*2*y);
@@ -189,8 +184,6 @@ struct Constants {
                 Kx[index] = complex<double>(0, (2*M_PI / Lx) * tempx);
                 Ky[index] = complex<double>(0, (2*M_PI / Lx) * tempy);
 
-
-
                 // Lap_hat
                 double temp = real((Kx[index]*Kx[index] + Ky[index]*Ky[index]));
                 Lap_hat[index] = complex<double>(temp, 0);
@@ -209,24 +202,24 @@ struct Constants {
         }
 
         
-        // Set velocities
-        int offset = Constants::local_alloc_fs;
-        vx[0] = 0.0;
-        vy[0] = 0.0;
-
-        for (int i = 0; i < 6; i++) {
-            vx[i+1] = cos(2*M_PI*i / 6);
-            vy[i+1] = sin(2*M_PI*i / 6);
-        }
-
         // FTh
-        FTh[slice(0*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (vx[0]*Kx + vy[0]*Ky) / epsilon);
-        FTh[slice(1*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (vx[1]*Kx + vy[1]*Ky) / epsilon);
-        FTh[slice(2*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (vx[2]*Kx + vy[2]*Ky) / epsilon);
-        FTh[slice(3*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (vx[3]*Kx + vy[3]*Ky) / epsilon);
-        FTh[slice(4*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (vx[4]*Kx + vy[4]*Ky) / epsilon);
-        FTh[slice(5*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (vx[5]*Kx + vy[5]*Ky) / epsilon);
-        FTh[slice(6*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (vx[6]*Kx + vy[6]*Ky) / epsilon);
+        int offset = Constants::local_alloc_fs;
+    
+        FTh[slice(0*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (Kx - Kx) / epsilon); // 0
+        FTh[slice(1*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (Kx)  / epsilon);
+        FTh[slice(2*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (Ky)  / epsilon);
+        FTh[slice(3*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (-Kx) / epsilon);
+        FTh[slice(4*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (-Ky) / epsilon);
+
+        FTh[slice(5*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (Kx + Ky)  / epsilon);
+        FTh[slice(6*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (-Kx + Ky) / epsilon);
+        FTh[slice(7*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (-Kx - Ky) / epsilon);
+        FTh[slice(8*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (Kx - Ky)  / epsilon);
+
+        FTh[slice(9*offset, offset, 1)]  = -(1/(epsilon*epsilon*nu) + ( 2*Kx) / epsilon);
+        FTh[slice(10*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + ( 2*Ky) / epsilon);
+        FTh[slice(11*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (-2*Kx) / epsilon);
+        FTh[slice(12*offset, offset, 1)] = -(1/(epsilon*epsilon*nu) + (-2*Ky) / epsilon);
 
 
 
@@ -254,8 +247,6 @@ struct Constants {
         set_sizes(size_, rank_);
         if (init_condition != "fromfile") set_initials();
         set_operators();
-
-
     }
 
 
@@ -264,16 +255,17 @@ struct Constants {
 
 
 // Adjustable physical parameters
-const double Constants::nu = pow(10, -4);
-const double Constants::epsilon = 10;
+const double Constants::nu = 3.0 * pow(10, -6);
+const double Constants::epsilon = 0.1;
 const double Constants::Lx = 1.0;
 const double Constants::Ly = 1.0;
 const double Constants::T0 = 0.0;
-const double Constants::T1 = 1.0;
+const double Constants::T1 = 32.0;
 
 // Adjustable Numerical parameters
-const int Constants::N = 128;
+const int Constants::N = 4096;
 const double Constants::dt = 2*pow(10, -4);
+
 
 // Initial condition
 // "tg":  Taylor-Green Vortex
@@ -282,15 +274,17 @@ const double Constants::dt = 2*pow(10, -4);
 const string Constants::init_condition = "tg";
 const string Constants::init_file_path = "/"; // File path (folder) of where to read initial condition
 
+
 // Saving solution
 const string Constants::result_file_path = "/"; // File path (folder) of where to save solution (end with "/")
 const string Constants::saving_sol = "we"; // "w": Save vorticity, "e": save error, "we": save both (only applicable to IC "tg", for "ptg" only vorticity gets saved)
 const int Constants::Nsave = 1000; // Number of steps saved
 
 
+
 // Fixed parameters
 const int Constants::N_half = Constants::N/2 + 1;
-const double Constants::c_s = 1.0/2.0;
+const double Constants::c_s = sqrt(2.0)/sqrt(5.0);
 const double Constants::dx = Lx/N;
 const double Constants::dy = Ly/N;
 const int Constants::Nd = round(T1/dt);
@@ -328,9 +322,7 @@ valarray<double> Constants::w_0;
 
 
 // Weights
-const int Constants::lattice_number = 7;
-valarray<double> Constants::weights{1.0/2.0, 1.0/12.0, 1.0/12.0, 1.0/12.0, 1.0/12.0, 1.0/12.0, 1.0/12.0};
-valarray<double> Constants::vx;
-valarray<double> Constants::vy;
+const int Constants::lattice_number = 13;
+valarray<double> Constants::weights{2.0/5.0, 8.0/75.0, 8.0/75.0, 8.0/75.0, 8.0/75.0, 1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/25.0, 1.0/300.0, 1.0/300.0, 1.0/300.0, 1.0/300.0};
 
 
