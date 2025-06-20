@@ -235,7 +235,7 @@ void save_vel_to_file(valarray<double> u1, valarray<double> u2, valarray<double>
 
     // Set file name
     ostringstream oss;
-    oss << Constants::result_file_path << "/" << Constants::init_condition << "_eps" << Constants::epsilon << "_N" << Constants::N << "_dt" << Constants::dt << "_T" << Constants::T1 << "_nu" << Constants::nu << "_Nsave" << Constants::Nsave << "_rank" << Constants::rank << "_ti" << ti << ".vtk";
+    oss << Constants::result_file_path << Constants::init_condition << "_eps" << Constants::epsilon << "_N" << Constants::N << "_dt" << Constants::dt << "_T" << Constants::T1 << "_nu" << Constants::nu << "_Nsave" << Constants::Nsave << "_rank" << Constants::rank << "_ti" << ti << ".vtk";
     ofstream file(oss.str());
 
     // VTK format headers
@@ -273,7 +273,7 @@ void save_vel_to_file(valarray<double> u1, valarray<double> u2, valarray<double>
 //      - double u3_global_max: Value of the maximum error in the z-component
 //      - int ti: current time index
 void save_err_to_file(double u1_global_max, double u2_global_max, double u3_global_max) {
-    string file_name = Constants::result_file_path + "/error.txt";
+    string file_name = Constants::result_file_path + "error.txt";
     ofstream out_error(file_name, std::ios::app);
 
     out_error << (1.0/3.0) / (u1_global_max + u2_global_max + u3_global_max) << "\n";

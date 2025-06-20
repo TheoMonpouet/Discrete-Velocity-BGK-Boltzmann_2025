@@ -272,7 +272,7 @@ const double Constants::dt = 2*pow(10, -4);
 // "ptg": Perturbed Taylor-Green Vortex
 // "fromfile": Read the input from file specified by variable init_filepath
 const string Constants::init_condition = "tg";
-const string Constants::init_file_path = "/"; // File path (folder) of where to read initial condition
+const string Constants::init_file_path = "/"; // File path of where to read initial condition
 
 
 // Saving solution

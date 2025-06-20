@@ -230,7 +230,7 @@ const double Constants::dt = pow(10, -4);
 // "c1":  Closed form 1
 // TODO: Fromfile
 const string Constants::init_condition = "c1";
-const string Constants::init_file_path = "/"; // File path (folder) of where to read initial condition
+const string Constants::init_file_path = "/"; // File path of where to read initial condition
 
 
 // Saving solution

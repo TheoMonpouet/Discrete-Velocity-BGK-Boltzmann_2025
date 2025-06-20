@@ -67,17 +67,8 @@ int main(int argc, char **argv) {
 
         // Only runs depending on Nsave value
         if (ti % Constants::TSCREEN == 1) save_to_file_routine(ghat, ti);
-        
     }
     
-
-
-
-
-
-
-
-
 
 
 
