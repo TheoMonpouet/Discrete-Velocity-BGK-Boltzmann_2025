@@ -94,7 +94,7 @@ struct FFTHandler {
     }
 
     
-    // execute_bkwd(): Static method to execute the inverse fft for multiple inputs in a big array.
+    // execute_bkwd_index(): Static method to execute the inverse fft for multiple inputs in a big array.
     // Inputs:
     //    - valarray<complex<double>>& input: A valarray containing complex<double> to be used as input
     //    - valarray<double>& output: A valarray containing doubles to be overridden as output
