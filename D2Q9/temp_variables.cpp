@@ -44,7 +44,7 @@ struct Temp {
 
     // initialize(): Setting the sizes of every member
     static void initialize() {
-        g.resize(2*Constants::local_alloc_ps * 9);
+        g.resize(2*Constants::local_alloc_ps * Constants::lattice_number);
 
         u1.resize(2*Constants::local_alloc_ps);
         u2.resize(2*Constants::local_alloc_ps);
@@ -54,7 +54,7 @@ struct Temp {
         uabs.resize(2*Constants::local_alloc_ps);
         rho.resize(2*Constants::local_alloc_ps);
 
-        geqh.resize(Constants::local_alloc_fs * 9);
+        geqh.resize(Constants::local_alloc_fs * Constants::lattice_number);
         u1h.resize(Constants::local_alloc_fs);
         u2h.resize(Constants::local_alloc_fs);
         u11h.resize(Constants::local_alloc_fs);
@@ -64,10 +64,10 @@ struct Temp {
         rhoh.resize(Constants::local_alloc_fs);
         laP_hat.resize(Constants::local_alloc_fs);
 
-        k1.resize(Constants::local_alloc_fs * 9);
-        k2.resize(Constants::local_alloc_fs * 9);
-        k3.resize(Constants::local_alloc_fs * 9);
-        k4.resize(Constants::local_alloc_fs * 9);
+        k1.resize(Constants::local_alloc_fs * Constants::lattice_number);
+        k2.resize(Constants::local_alloc_fs * Constants::lattice_number);
+        k3.resize(Constants::local_alloc_fs * Constants::lattice_number);
+        k4.resize(Constants::local_alloc_fs * Constants::lattice_number);
 
     }
 

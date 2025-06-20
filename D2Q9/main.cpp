@@ -21,7 +21,7 @@
 bool check_nan(valarray<complex<double>>& ghat) {
     bool has_nan = false;
 
-    for (int m = 0; m < 9; m++) {
+    for (int m = 0; m < Constants::lattice_number; m++) {
         int lattice_offset = m * Constants::local_alloc_fs;
         
         for (int i = 0; i < Constants::local_N_fs; i++) {
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
 
 
     // Set initial condition
-    valarray<complex<double>> ghat(Constants::local_alloc_fs * 9);
+    valarray<complex<double>> ghat(Constants::local_alloc_fs * Constants::lattice_number);
     if (Constants::init_condition == "fromfile") set_initial_ghat_from_file(ghat);
     else set_initial_ghat_from_closed_form(ghat);
 

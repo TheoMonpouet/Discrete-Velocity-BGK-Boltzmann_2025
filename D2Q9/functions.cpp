@@ -84,7 +84,7 @@ void u2geq_hat(valarray<complex<double>>& geqh) {
 // calc_rho(): Function to calculate the density field from the probability distribution functions
 void calc_rho() {
     Temp::rho *= 0;
-    for (int m = 0; m < 9; m++) {
+    for (int m = 0; m < Constants::lattice_number; m++) {
         for (int i = 0; i < Constants::local_N_ps; i++) {
             for (int j = 0; j < Constants::N; j++) {
                 int index = i * 2*(Constants::N/2+1) + j;
@@ -102,7 +102,7 @@ void calc_rho() {
 //       - valarray<complex<double>>& ghat: Particle velocity probability distribution
 void rhou1u2(const valarray<complex<double>>& ghat) {
     // Compute IFFT
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < Constants::lattice_number; i++) {
         FFTHandler::execute_bkwd_index(ghat, Temp::g, i);
     }
     
@@ -141,7 +141,7 @@ void RHS(const valarray<complex<double>>& ghat, valarray<complex<double>>& kn) {
     u2geq_hat(Temp::geqh);
 
     // Computes RHS and overwrite result variable
-    for (int i = 0; i < Constants::local_alloc_fs * 9; i++) {
+    for (int i = 0; i < Constants::local_alloc_fs * Constants::lattice_number; i++) {
         kn[i] = Constants::dt * (Constants::FTh[i] * ghat[i] + Temp::geqh[i] / (Constants::epsilon * Constants::epsilon * Constants::nu));
     }
 }
@@ -165,7 +165,7 @@ void RK4stepping(valarray<complex<double>>& ghat) {
     RHS(ghat + Temp::k3, Temp::k4);
 
     // Update ghat
-    for (int i = 0; i < Constants::local_alloc_fs * 9; i++) {
+    for (int i = 0; i < Constants::local_alloc_fs * Constants::lattice_number; i++) {
         ghat[i] += (Temp::k1[i] + 2.0*Temp::k2[i] + 2.0*Temp::k3[i] + Temp::k4[i]) / 6.0;
     }
 }

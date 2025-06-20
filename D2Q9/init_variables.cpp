@@ -86,6 +86,7 @@ struct Constants {
     static valarray<double> w_0;
     
     // Weights
+    static int Constants::lattice_number = 9;
     static valarray<double> weights;
 
 
@@ -109,7 +110,7 @@ struct Constants {
         Lap_hat.resize(local_alloc_fs);
         Pois_hat.resize(local_alloc_fs);
         dealias.resize(local_alloc_fs);
-        FTh.resize(local_alloc_fs * 9);
+        FTh.resize(local_alloc_fs * lattice_number);
 
         w_0.resize(2 * local_alloc_ps);
     }
@@ -305,6 +306,7 @@ valarray<double> Constants::w_0;
 
 
 // Weights
+const int Constants::lattice_number = 9;
 valarray<double> Constants::weights{1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/9.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 1.0/36.0, 4.0/9.0};
 
 
