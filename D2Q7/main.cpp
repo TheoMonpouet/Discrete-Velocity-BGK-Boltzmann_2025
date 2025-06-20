@@ -1,15 +1,3 @@
-/*
-    main.cpp: The main program, including a check for solution stability and the main time loop.
-   
-    Author: Théo Monpouet Ekeram
-    As part of a master thesis in Computational Mathematics, KTH Royal Institute of Technology
-    Thesis name: 'Parallel implementation and analysis of the discrete-velocity BGK Boltzmann method'
-    Date: 2025/06/01
-*/
-
-
-
-
 #include <iostream>
 #include <math.h>
 #include <complex>

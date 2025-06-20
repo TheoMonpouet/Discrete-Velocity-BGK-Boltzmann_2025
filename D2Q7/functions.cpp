@@ -8,8 +8,6 @@
 */
 
 
-
-
 #include <iostream>
 #include <math.h>
 #include <complex>
@@ -30,7 +28,7 @@ using namespace std;
 //              non-linear terms.
 // Inputs:
 //       - valarray<complex<double>>& geqh: array of complex<double> to be overwritten with the output of the function
-void u2geq_hat(valarray<complex<double>>& geqh) {
+void u2geq_hat(valarray<complex<double>>& geqh) {    
 
     // Coefficients with the speed of sound constant
     double C2 = 1.0 / (Constants::c_s* Constants::c_s);
@@ -49,7 +47,6 @@ void u2geq_hat(valarray<complex<double>>& geqh) {
     }
 
     // Transform the products to Fourier space
-    FFTHandler::execute_fwd(Temp::u11, Temp::u11h);
     FFTHandler::execute_fwd(Temp::u22, Temp::u22h);
     FFTHandler::execute_fwd(Temp::u12, Temp::u12h);
     FFTHandler::execute_fwd(Temp::uabs, Temp::uabsh);
@@ -63,21 +60,20 @@ void u2geq_hat(valarray<complex<double>>& geqh) {
         Temp::rhoh[i]  = Temp::rhoh[i] * Constants::dealias[i];
     }
 
+    
     // Compute geqh from velocity and density fields using the weights
     int offset = Constants::local_alloc_fs;
     for (int i = 0; i < Constants::local_alloc_fs; i++) {
-        geqh[i + 0*offset] = (Temp::rhoh[i] + C2*Temp::u1h[i]                    - Temp::uabsh[i] + C4 * Temp::u11h[i]                                      ) * Constants::weights[0];
-        geqh[i + 1*offset] = (Temp::rhoh[i] + C2*Temp::u2h[i]                    - Temp::uabsh[i] + C4 * Temp::u22h[i]                                      ) * Constants::weights[1];
-        geqh[i + 2*offset] = (Temp::rhoh[i] - C2*Temp::u1h[i]                    - Temp::uabsh[i] + C4 * Temp::u11h[i]                                      ) * Constants::weights[2];
-        geqh[i + 3*offset] = (Temp::rhoh[i] - C2*Temp::u2h[i]                    - Temp::uabsh[i] + C4 * Temp::u22h[i]                                      ) * Constants::weights[3];
-
-        geqh[i + 4*offset] = (Temp::rhoh[i] + C2*( Temp::u1h[i] + Temp::u2h[i])  - Temp::uabsh[i] + C4*2*Temp::u12h[i] + C4*Temp::u11h[i] + C4*Temp::u22h[i]) * Constants::weights[4];
-        geqh[i + 5*offset] = (Temp::rhoh[i] + C2*(-Temp::u1h[i] + Temp::u2h[i])  - Temp::uabsh[i] - C4*2*Temp::u12h[i] + C4*Temp::u11h[i] + C4*Temp::u22h[i]) * Constants::weights[5];
-        geqh[i + 6*offset] = (Temp::rhoh[i] + C2*(-Temp::u1h[i] - Temp::u2h[i])  - Temp::uabsh[i] + C4*2*Temp::u12h[i] + C4*Temp::u11h[i] + C4*Temp::u22h[i]) * Constants::weights[6];
-        geqh[i + 7*offset] = (Temp::rhoh[i] + C2*( Temp::u1h[i] - Temp::u2h[i])  - Temp::uabsh[i] - C4*2*Temp::u12h[i] + C4*Temp::u11h[i] + C4*Temp::u22h[i]) * Constants::weights[7];
-
-        geqh[i + 8*offset] = (Temp::rhoh[i]                                      - Temp::uabsh[i]                                                           ) * Constants::weights[8];
+        geqh[i + 0*offset]  = (Temp::rhoh[i]                                                                      - Temp::uabsh[i]                                                                                                                                                                  ) * Constants::weights[0];
+        geqh[i + 1*offset]  = (Temp::rhoh[i] + C2*Temp::u1h[i]                                                    - Temp::uabsh[i] + C4 * Temp::u11h[i]                                                                                                                                             ) * Constants::weights[1];
+        geqh[i + 2*offset]  = (Temp::rhoh[i] + C2*(Constants::vx[2]*Temp::u1h[i] + Constants::vy[2]*Temp::u2h[i]) - Temp::uabsh[i] + C4*Constants::vx[2]*Constants::vx[2]*Temp::u11h[i] + C4*Constants::vy[2]*Constants::vy[2]*Temp::u22h[i] + 2*C4*Constants::vx[2]*Constants::vy[2]*Temp::u12h[i] ) * Constants::weights[2];
+        geqh[i + 3*offset]  = (Temp::rhoh[i] + C2*(Constants::vx[3]*Temp::u1h[i] + Constants::vy[3]*Temp::u2h[i]) - Temp::uabsh[i] + C4*Constants::vx[3]*Constants::vx[3]*Temp::u11h[i] + C4*Constants::vy[3]*Constants::vy[3]*Temp::u22h[i] + 2*C4*Constants::vx[3]*Constants::vy[3]*Temp::u12h[i] ) * Constants::weights[3];
+        geqh[i + 4*offset]  = (Temp::rhoh[i] - C2*Temp::u1h[i]                                                    - Temp::uabsh[i] + C4*Temp::u11h[i]                                                                                                                                               ) * Constants::weights[4];
+        geqh[i + 5*offset]  = (Temp::rhoh[i] + C2*(Constants::vx[5]*Temp::u1h[i] + Constants::vy[5]*Temp::u2h[i]) - Temp::uabsh[i] + C4*Constants::vx[5]*Constants::vx[5]*Temp::u11h[i] + C4*Constants::vy[5]*Constants::vy[5]*Temp::u22h[i] + 2*C4*Constants::vx[5]*Constants::vy[5]*Temp::u12h[i] ) * Constants::weights[5];
+        geqh[i + 6*offset]  = (Temp::rhoh[i] + C2*(Constants::vx[6]*Temp::u1h[i] + Constants::vy[6]*Temp::u2h[i]) - Temp::uabsh[i] + C4*Constants::vx[6]*Constants::vx[6]*Temp::u11h[i] + C4*Constants::vy[6]*Constants::vy[6]*Temp::u22h[i] + 2*C4*Constants::vx[6]*Constants::vy[6]*Temp::u12h[i] ) * Constants::weights[6]; 
     }
+
+    
 }
 
 
@@ -96,7 +92,6 @@ void calc_rho() {
 
 
 
-
 // rhou1u2(): function that computes the density field and reconstructs the velocity field in Fourier space from ghat
 // Inputs:
 //       - valarray<complex<double>>& ghat: Particle velocity probability distribution
@@ -110,14 +105,11 @@ void rhou1u2(const valarray<complex<double>>& ghat) {
     calc_rho();
     FFTHandler::execute_fwd(Temp::rho, Temp::rhoh);
 
-
     // NS velocity components
     int offset = Constants::local_alloc_fs;
     for (size_t i = 0; i < Constants::local_alloc_fs; i++) {
-        Temp::u1h[i] = ghat[i + 0 * offset] - ghat[i + 2 * offset] + ghat[i + 4 * offset] 
-                     - ghat[i + 5 * offset] - ghat[i + 6 * offset] + ghat[i + 7 * offset];
-        Temp::u2h[i] = ghat[i + 1 * offset] - ghat[i + 3 * offset] + ghat[i + 4 * offset] 
-                     + ghat[i + 5 * offset] - ghat[i + 6 * offset] - ghat[i + 7 * offset];
+        Temp::u1h[i] = ghat[i + 1*offset] + Constants::vx[2]*ghat[i + 2*offset] + Constants::vx[3]*ghat[i + 3*offset] - ghat[i + 4*offset] + Constants::vx[5]*ghat[i + 5*offset] + Constants::vx[6]*ghat[i + 6*offset];
+        Temp::u2h[i] = Constants::vy[2]*ghat[i + 2*offset] + Constants::vy[3]*ghat[i + 3*offset] + Constants::vy[5]*ghat[i + 5*offset] + Constants::vy[6]*ghat[i + 6*offset];
     }
 
     // Leray projection for divergence-free solution
@@ -147,20 +139,21 @@ void RHS(const valarray<complex<double>>& ghat, valarray<complex<double>>& kn) {
 }
 
 
+
 // RK4stepping(): Function to step forwards with the RK4 method
 // Inputs:
 //      - valarray<complex<double>>& ghat: Particle velocity probability distribution, to be updated with the result of the stepping
 void RK4stepping(valarray<complex<double>>& ghat) {
-    // k1
+    //k1
     RHS(ghat, Temp::k1);
 
-    // k2
+    //k2
     RHS(ghat + 0.5*Temp::k1, Temp::k2);
 
-    // k3
+    //k3
     RHS(ghat + 0.5*Temp::k2, Temp::k3);
 
-    // k4
+    //k4
     RHS(ghat + Temp::k3, Temp::k4);
 
     // Update ghat
@@ -168,6 +161,8 @@ void RK4stepping(valarray<complex<double>>& ghat) {
         ghat[i] += (Temp::k1[i] + 2.0*Temp::k2[i] + 2.0*Temp::k3[i] + Temp::k4[i]) / 6.0;
     }
 }
+
+
 
 
 // set_initial_ghat_from_closed_form(): Function to set the initial condition of ghat from the vorticity inital condition defined in "init_variables.cpp"
